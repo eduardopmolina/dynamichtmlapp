@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import { Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
@@ -31,7 +32,7 @@ export class DynamicHtmlAppStack extends cdk.Stack {
     // Allow the Lambda function to read the SSM Parameter
     dynamicHtmlFunction.addToRolePolicy(new iam.PolicyStatement({
       actions: ['ssm:GetParameter'],
-      resources: [`arn:aws:ssm:${this.region}:${this.account}:parameter/dynamic-html/string`],
+      resources: [`arn:aws:ssm:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:parameter/dynamic-html/string`],
     }));
 
 
@@ -48,8 +49,8 @@ export class DynamicHtmlAppStack extends cdk.Stack {
     // 4. CloudFront Distribution
     const distribution = new cloudfront.Distribution(this, 'WebAppDistribution', {
       defaultBehavior: {
-        origin: new cloudfront_origins.HttpOrigin(`${api.restApiId}.execute-api.${this.region}.amazonaws.com`, {
-          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY, // Enforce HTTPS
+        origin: new cloudfront_origins.HttpOrigin(`${api.restApiId}.execute-api.${Stack.of(this).region}.amazonaws.com`, {
+          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY, // Enforce HTTP
         }),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS, // Redirect HTTP to HTTPS
